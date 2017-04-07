@@ -1,5 +1,6 @@
 package org.graylog.jest.restclient;
 
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope;
 import io.searchbox.cluster.Health;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.pool.PoolStats;
@@ -20,6 +21,7 @@ import java.util.concurrent.TimeUnit;
  * @author cihat keser
  */
 @ClusterScope(scope = Scope.TEST, numDataNodes = 0)
+@ThreadLeakScope(ThreadLeakScope.Scope.NONE)
 public class JestClientFactoryIntegrationTest extends ESIntegTestCase {
 
     private JestClientFactory factory = new JestClientFactory();
