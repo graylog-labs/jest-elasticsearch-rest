@@ -1,5 +1,6 @@
-package io.searchbox.client.config;
+package org.graylog.jest.restclient.config;
 
+import io.searchbox.client.config.ClientConfig;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;

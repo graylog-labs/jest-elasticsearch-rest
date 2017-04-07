@@ -1,7 +1,5 @@
-package io.searchbox.client;
+package org.graylog.jest.restclient;
 
-import io.searchbox.client.config.HttpClientConfig;
-import io.searchbox.client.http.JestHttpClient;
 import io.searchbox.cluster.Health;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.pool.PoolStats;
@@ -10,6 +8,8 @@ import org.elasticsearch.node.Node;
 import org.elasticsearch.test.ESIntegTestCase;
 import org.elasticsearch.test.ESIntegTestCase.ClusterScope;
 import org.elasticsearch.test.ESIntegTestCase.Scope;
+import org.graylog.jest.restclient.config.HttpClientConfig;
+import org.graylog.jest.restclient.http.JestHttpClient;
 import org.junit.Test;
 
 import java.io.IOException;

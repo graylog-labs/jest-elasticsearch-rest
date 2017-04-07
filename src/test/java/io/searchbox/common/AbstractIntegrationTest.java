@@ -1,12 +1,12 @@
 package io.searchbox.common;
 
-import io.searchbox.client.JestClientFactory;
-import io.searchbox.client.config.HttpClientConfig;
-import io.searchbox.client.http.JestHttpClient;
 import org.elasticsearch.cluster.metadata.IndexMetaData;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.test.ESIntegTestCase;
+import org.graylog.jest.restclient.JestClientFactory;
+import org.graylog.jest.restclient.config.HttpClientConfig;
+import org.graylog.jest.restclient.http.JestHttpClient;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;

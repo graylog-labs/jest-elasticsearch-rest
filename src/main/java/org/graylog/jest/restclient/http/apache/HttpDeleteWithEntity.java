@@ -1,4 +1,4 @@
-package io.searchbox.client.http.apache;
+package org.graylog.jest.restclient.http.apache;
 
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;

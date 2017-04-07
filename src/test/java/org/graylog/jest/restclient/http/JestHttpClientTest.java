@@ -1,9 +1,5 @@
-package io.searchbox.client.http;
+package org.graylog.jest.restclient.http;
 
-import io.searchbox.client.JestClientFactory;
-import io.searchbox.client.config.HttpClientConfig;
-import io.searchbox.client.http.apache.HttpDeleteWithEntity;
-import io.searchbox.client.http.apache.HttpGetWithEntity;
 import io.searchbox.core.Search;
 import io.searchbox.core.search.sort.Sort;
 import org.apache.commons.io.IOUtils;
@@ -13,10 +9,18 @@ import org.apache.http.HttpVersion;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.entity.GzipCompressingEntity;
-import org.apache.http.client.methods.*;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicStatusLine;
+import org.graylog.jest.restclient.JestClientFactory;
+import org.graylog.jest.restclient.config.HttpClientConfig;
+import org.graylog.jest.restclient.http.apache.HttpDeleteWithEntity;
+import org.graylog.jest.restclient.http.apache.HttpGetWithEntity;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,13 +30,15 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Dogukan Sonmez

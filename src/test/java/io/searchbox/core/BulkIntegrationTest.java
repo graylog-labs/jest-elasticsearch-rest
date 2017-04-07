@@ -10,6 +10,8 @@ import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.script.groovy.GroovyPlugin;
 import org.elasticsearch.test.ESIntegTestCase;
+import org.graylog.jest.restclient.config.HttpClientConfig;
+import org.graylog.jest.restclient.http.JestHttpClient;
 import org.json.JSONException;
 import org.junit.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -18,8 +20,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import io.searchbox.client.JestResult;
-import io.searchbox.client.config.HttpClientConfig;
-import io.searchbox.client.http.JestHttpClient;
 import io.searchbox.common.AbstractIntegrationTest;
 import io.searchbox.params.Parameters;
 

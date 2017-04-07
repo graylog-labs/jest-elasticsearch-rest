@@ -1,11 +1,10 @@
-package io.searchbox.client;
+package org.graylog.jest.restclient;
 
 import java.util.HashSet;
 
+import io.searchbox.client.JestClient;
 import io.searchbox.client.config.ClientConfig;
-import io.searchbox.client.config.HttpClientConfig;
 import io.searchbox.client.config.discovery.NodeChecker;
-import io.searchbox.client.http.JestHttpClient;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -19,6 +18,8 @@ import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
 import org.apache.http.nio.conn.NHttpClientConnectionManager;
+import org.graylog.jest.restclient.config.HttpClientConfig;
+import org.graylog.jest.restclient.http.JestHttpClient;
 import org.junit.Test;
 import org.mockito.Mockito;
 

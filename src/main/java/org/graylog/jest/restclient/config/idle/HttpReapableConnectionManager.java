@@ -1,5 +1,6 @@
-package io.searchbox.client.config.idle;
+package org.graylog.jest.restclient.config.idle;
 
+import io.searchbox.client.config.idle.ReapableConnectionManager;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.nio.conn.NHttpClientConnectionManager;
 

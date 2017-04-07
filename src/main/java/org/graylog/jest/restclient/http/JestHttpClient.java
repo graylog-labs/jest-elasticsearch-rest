@@ -1,17 +1,17 @@
-package io.searchbox.client.http;
+package org.graylog.jest.restclient.http;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.gson.Gson;
 import io.searchbox.action.Action;
 import io.searchbox.client.AbstractJestClient;
 import io.searchbox.client.JestResult;
 import io.searchbox.client.JestResultHandler;
 import io.searchbox.client.config.exception.CouldNotConnectException;
-import io.searchbox.client.http.apache.HttpDeleteWithEntity;
-import io.searchbox.client.http.apache.HttpGetWithEntity;
-import java.io.IOException;
-import java.util.Map.Entry;
-import java.util.concurrent.Future;
-
-import org.apache.http.*;
+import org.apache.http.Header;
+import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
 import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpHead;
@@ -25,9 +25,14 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.util.EntityUtils;
+import org.graylog.jest.restclient.http.apache.HttpDeleteWithEntity;
+import org.graylog.jest.restclient.http.apache.HttpGetWithEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.google.gson.Gson;
+
+import java.io.IOException;
+import java.util.Map.Entry;
+import java.util.concurrent.Future;
 
 /**
  * @author Dogukan Sonmez
@@ -222,6 +227,18 @@ public class JestHttpClient extends AbstractJestClient {
 
     public void setHttpClientContextTemplate(HttpClientContext httpClientContext) {
         this.httpClientContextTemplate = httpClientContext;
+    }
+
+    @Override
+    @VisibleForTesting
+    public int getServerPoolSize() {
+        return super.getServerPoolSize();
+    }
+
+    @Override
+    @VisibleForTesting
+    public String getNextServer() {
+        return super.getNextServer();
     }
 
     protected class DefaultCallback<T extends JestResult> implements FutureCallback<HttpResponse> {
