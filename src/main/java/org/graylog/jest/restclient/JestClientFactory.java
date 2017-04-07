@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.config.discovery.NodeChecker;
 import io.searchbox.client.config.idle.IdleConnectionReaper;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.client.AuthCache;
@@ -12,26 +11,19 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
-import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
 import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
 import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import org.apache.http.nio.conn.NHttpClientConnectionManager;
 import org.apache.http.nio.conn.SchemeIOSessionStrategy;
 import org.apache.http.nio.reactor.IOReactorException;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
 import org.graylog.jest.restclient.config.HttpClientConfig;
 import org.graylog.jest.restclient.config.idle.HttpReapableConnectionManager;
 import org.graylog.jest.restclient.http.JestHttpClient;
@@ -46,7 +38,7 @@ import java.util.Set;
  */
 public class JestClientFactory {
 
-    final static Logger log = LoggerFactory.getLogger(JestClientFactory.class);
+    private static final Logger log = LoggerFactory.getLogger(JestClientFactory.class);
     private HttpClientConfig httpClientConfig;
 
     public JestClient getObject() {
@@ -59,10 +51,8 @@ public class JestClientFactory {
 
         client.setRequestCompressionEnabled(httpClientConfig.isRequestCompressionEnabled());
         client.setServers(httpClientConfig.getServerList());
-        final HttpClientConnectionManager connectionManager = getConnectionManager();
-        final NHttpClientConnectionManager asyncConnectionManager = getAsyncConnectionManager();
-        client.setHttpClient(createHttpClient(connectionManager));
-        client.setAsyncClient(createAsyncHttpClient(asyncConnectionManager));
+        final NHttpClientConnectionManager connectionManager = getAsyncConnectionManager();
+        client.setRestClient(createRestClient(connectionManager));
 
         // set custom gson instance
         Gson gson = httpClientConfig.getGson();
@@ -91,7 +81,7 @@ public class JestClientFactory {
         if (httpClientConfig.getMaxConnectionIdleTime() > 0) {
             log.info("Idle connection reaping enabled...");
 
-            IdleConnectionReaper reaper = new IdleConnectionReaper(httpClientConfig, new HttpReapableConnectionManager(connectionManager, asyncConnectionManager));
+            IdleConnectionReaper reaper = new IdleConnectionReaper(httpClientConfig, new HttpReapableConnectionManager(connectionManager));
             client.setIdleConnectionReaper(reaper);
             reaper.startAsync();
             reaper.awaitRunning();
@@ -112,27 +102,20 @@ public class JestClientFactory {
         this.httpClientConfig = httpClientConfig;
     }
 
-    private CloseableHttpClient createHttpClient(HttpClientConnectionManager connectionManager) {
-        return configureHttpClient(
-                HttpClients.custom()
-                        .setConnectionManager(connectionManager)
-                        .setDefaultRequestConfig(getRequestConfig())
-                        .setProxyAuthenticationStrategy(httpClientConfig.getProxyAuthenticationStrategy())
-                        .setRoutePlanner(getRoutePlanner())
-                        .setDefaultCredentialsProvider(httpClientConfig.getCredentialsProvider())
+    private RestClient createRestClient(NHttpClientConnectionManager connectionManager) {
+        final HttpHost[] initialHttpHosts = httpClientConfig.getServerList().stream().map(HttpHost::create).toArray(HttpHost[]::new);
+        return configureRestClient(
+                RestClient.builder(initialHttpHosts)
+                        .setHttpClientConfigCallback(builder -> configureAsyncClient(builder
+                                .setConnectionManager(connectionManager)
+                                .setDefaultRequestConfig(getRequestConfig())
+                                .setProxyAuthenticationStrategy(httpClientConfig.getProxyAuthenticationStrategy())
+                                .setRoutePlanner(getRoutePlanner())
+                                .setDefaultCredentialsProvider(httpClientConfig.getCredentialsProvider())))
+                        .setRequestConfigCallback(this::configureRequestConfig)
         ).build();
     }
 
-    private CloseableHttpAsyncClient createAsyncHttpClient(NHttpClientConnectionManager connectionManager) {
-        return configureHttpClient(
-                HttpAsyncClients.custom()
-                        .setConnectionManager(connectionManager)
-                        .setDefaultRequestConfig(getRequestConfig())
-                        .setProxyAuthenticationStrategy(httpClientConfig.getProxyAuthenticationStrategy())
-                        .setRoutePlanner(getRoutePlanner())
-                        .setDefaultCredentialsProvider(httpClientConfig.getCredentialsProvider())
-        ).build();
-    }
 
     /**
      * Extension point
@@ -142,20 +125,23 @@ public class JestClientFactory {
      * <pre>
      * final JestClientFactory factory = new JestClientFactory() {
      *    {@literal @Override}
-     *  	protected HttpClientBuilder configureHttpClient(HttpClientBuilder builder) {
-     *  		return builder.setDefaultHeaders(...);
+     *  	protected RestClientBuilder configureRestClient(RestClientBuilder builder) {
+     *  		return builder.setHttpClientConfigCallback(...);
      *    }
      * }
      * </pre>
      */
-    protected HttpClientBuilder configureHttpClient(final HttpClientBuilder builder) {
+    protected RestClientBuilder configureRestClient(final RestClientBuilder builder) {
         return builder;
     }
 
-    /**
-     * Extension point for async client
-     */
-    protected HttpAsyncClientBuilder configureHttpClient(final HttpAsyncClientBuilder builder) {
+    // Extension point
+    protected HttpAsyncClientBuilder configureAsyncClient(final HttpAsyncClientBuilder builder) {
+        return builder;
+    }
+
+    // Extension point
+    protected RequestConfig.Builder configureRequestConfig(final RequestConfig.Builder builder) {
         return builder;
     }
 
@@ -206,40 +192,6 @@ public class JestClientFactory {
         final Map<HttpRoute, Integer> maxPerRoute = httpClientConfig.getMaxTotalConnectionPerRoute();
         for (Map.Entry<HttpRoute, Integer> entry : maxPerRoute.entrySet()) {
             retval.setMaxPerRoute(entry.getKey(), entry.getValue());
-        }
-
-        return retval;
-    }
-
-    // Extension point
-    protected HttpClientConnectionManager getConnectionManager() {
-        HttpClientConnectionManager retval;
-
-        Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
-                .register("http", httpClientConfig.getPlainSocketFactory())
-                .register("https", httpClientConfig.getSslSocketFactory())
-                .build();
-
-        if (httpClientConfig.isMultiThreaded()) {
-            log.info("Using multi thread/connection supporting pooling connection manager");
-            final PoolingHttpClientConnectionManager poolingConnMgr = new PoolingHttpClientConnectionManager(registry);
-
-            final Integer maxTotal = httpClientConfig.getMaxTotalConnection();
-            if (maxTotal != null) {
-                poolingConnMgr.setMaxTotal(maxTotal);
-            }
-            final Integer defaultMaxPerRoute = httpClientConfig.getDefaultMaxTotalConnectionPerRoute();
-            if (defaultMaxPerRoute != null) {
-                poolingConnMgr.setDefaultMaxPerRoute(defaultMaxPerRoute);
-            }
-            final Map<HttpRoute, Integer> maxPerRoute = httpClientConfig.getMaxTotalConnectionPerRoute();
-            for (Map.Entry<HttpRoute, Integer> entry : maxPerRoute.entrySet()) {
-                poolingConnMgr.setMaxPerRoute(entry.getKey(), entry.getValue());
-            }
-            retval = poolingConnMgr;
-        } else {
-            log.info("Using single thread/connection supporting basic connection manager");
-            retval = new BasicHttpClientConnectionManager(registry);
         }
 
         return retval;

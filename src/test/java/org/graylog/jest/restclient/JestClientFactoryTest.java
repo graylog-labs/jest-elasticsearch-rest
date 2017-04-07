@@ -1,7 +1,5 @@
 package org.graylog.jest.restclient;
 
-import java.util.HashSet;
-
 import io.searchbox.client.JestClient;
 import io.searchbox.client.config.ClientConfig;
 import io.searchbox.client.config.discovery.NodeChecker;
@@ -11,11 +9,8 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
 import org.apache.http.nio.conn.NHttpClientConnectionManager;
 import org.graylog.jest.restclient.config.HttpClientConfig;
@@ -23,8 +18,12 @@ import org.graylog.jest.restclient.http.JestHttpClient;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.util.HashSet;
+
 import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Dogukan Sonmez
@@ -50,8 +49,8 @@ public class JestClientFactoryTest {
         factory.setHttpClientConfig(new HttpClientConfig.Builder("http://localhost:9200").discoveryEnabled(true).build());
         JestHttpClient jestClient = (JestHttpClient) factory.getObject();
         assertTrue(jestClient != null);
-        assertNotNull(jestClient.getAsyncClient());
-        assertTrue(factory.getConnectionManager() instanceof BasicHttpClientConnectionManager);
+        assertNotNull(jestClient.getRestClient());
+        assertTrue(factory.getAsyncConnectionManager() instanceof PoolingNHttpClientConnectionManager);
         assertEquals(jestClient.getServerPoolSize(), 1);
     }
 
@@ -60,7 +59,7 @@ public class JestClientFactoryTest {
         JestClientFactory factory = new JestClientFactory();
         JestHttpClient jestClient = (JestHttpClient) factory.getObject();
         assertTrue(jestClient != null);
-        assertNotNull(jestClient.getAsyncClient());
+        assertNotNull(jestClient.getRestClient());
         assertEquals(jestClient.getServerPoolSize(), 1);
         assertEquals("server list should contain localhost:9200",
                 "http://localhost:9200", jestClient.getNextServer());
@@ -87,13 +86,6 @@ public class JestClientFactoryTest {
         assertEquals(jestClient.getServerPoolSize(), 1);
         assertEquals("server list should contain localhost:9200", "http://localhost:9200", jestClient.getNextServer());
 
-        final HttpClientConnectionManager connectionManager = factory.getConnectionManager();
-        assertTrue(connectionManager instanceof PoolingHttpClientConnectionManager);
-        assertEquals(10, ((PoolingHttpClientConnectionManager) connectionManager).getDefaultMaxPerRoute());
-        assertEquals(20, ((PoolingHttpClientConnectionManager) connectionManager).getMaxTotal());
-        assertEquals(5, ((PoolingHttpClientConnectionManager) connectionManager).getMaxPerRoute(routeOne));
-        assertEquals(6, ((PoolingHttpClientConnectionManager) connectionManager).getMaxPerRoute(routeTwo));
-
         final NHttpClientConnectionManager nConnectionManager = factory.getAsyncConnectionManager();
         assertTrue(nConnectionManager instanceof PoolingNHttpClientConnectionManager);
         assertEquals(10, ((PoolingNHttpClientConnectionManager) nConnectionManager).getDefaultMaxPerRoute());
@@ -111,7 +103,7 @@ public class JestClientFactoryTest {
         factory.setHttpClientConfig(httpClientConfig);
         JestHttpClient jestClient = (JestHttpClient) factory.getObject();
         assertTrue(jestClient != null);
-        assertNotNull(jestClient.getAsyncClient());
+        assertNotNull(jestClient.getRestClient());
         assertEquals(jestClient.getServerPoolSize(), 1);
         assertEquals("server list should contain localhost:9200",
                 "http://localhost:9200", jestClient.getNextServer());
@@ -129,7 +121,7 @@ public class JestClientFactoryTest {
 
         HttpClientConfig httpClientConfig = new HttpClientConfig.Builder("someUri")
                 .credentialsProvider(credentialsProvider)
-                .preemptiveAuthTargetHosts(new HashSet<HttpHost>(asList(targetHost1, targetHost2)))
+                .preemptiveAuthTargetHosts(new HashSet<>(asList(targetHost1, targetHost2)))
                 .build();
 
         factory.setHttpClientConfig(httpClientConfig);
@@ -149,7 +141,7 @@ public class JestClientFactoryTest {
     }
 
     class OtherNodeChecker extends NodeChecker {
-        public OtherNodeChecker(JestClient jestClient, ClientConfig clientConfig) {
+        OtherNodeChecker(JestClient jestClient, ClientConfig clientConfig) {
             super(jestClient, clientConfig);
         }
     }

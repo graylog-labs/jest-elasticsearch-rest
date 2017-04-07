@@ -1,25 +1,21 @@
 package org.graylog.jest.restclient.config.idle;
 
 import io.searchbox.client.config.idle.ReapableConnectionManager;
-import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.nio.conn.NHttpClientConnectionManager;
 
 import java.util.concurrent.TimeUnit;
 
 public class HttpReapableConnectionManager implements ReapableConnectionManager {
-    private final HttpClientConnectionManager connectionManager;
-    private final NHttpClientConnectionManager nConnectionManager;
+    private final NHttpClientConnectionManager connectionManager;
 
-    public HttpReapableConnectionManager(HttpClientConnectionManager connectionManager, NHttpClientConnectionManager nConnectionManager) {
-        if(connectionManager == null || nConnectionManager == null) throw new IllegalArgumentException();
+    public HttpReapableConnectionManager(NHttpClientConnectionManager connectionManager) {
+        if (connectionManager == null) throw new IllegalArgumentException();
 
         this.connectionManager = connectionManager;
-        this.nConnectionManager = nConnectionManager;
     }
 
     @Override
     public void closeIdleConnections(long idleTimeout, TimeUnit unit) {
         connectionManager.closeIdleConnections(idleTimeout, unit);
-        nConnectionManager.closeIdleConnections(idleTimeout, unit);
     }
 }

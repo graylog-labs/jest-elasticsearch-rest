@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 @ClusterScope(scope = Scope.TEST, numDataNodes = 0)
 public class JestClientFactoryIntegrationTest extends ESIntegTestCase {
 
-    JestClientFactory factory = new JestClientFactory();
+    private JestClientFactory factory = new JestClientFactory();
 
     @Test
     public void testDiscovery() throws InterruptedException, IOException {
@@ -33,7 +33,7 @@ public class JestClientFactoryIntegrationTest extends ESIntegTestCase {
         factory.setHttpClientConfig(new HttpClientConfig
                 .Builder("http://localhost:" + cluster().httpAddresses()[0].getPort())
                 .discoveryEnabled(true)
-                .discoveryFrequency(500l, TimeUnit.MILLISECONDS)
+                .discoveryFrequency(500L, TimeUnit.MILLISECONDS)
                 .build());
         JestHttpClient jestClient = (JestHttpClient) factory.getObject();
         assertNotNull(jestClient);
@@ -85,7 +85,7 @@ public class JestClientFactoryIntegrationTest extends ESIntegTestCase {
                 .Builder("http://localhost:" + cluster().httpAddresses()[0].getPort())
                 .discoveryEnabled(true)
                 .discoveryFilter("type:aardvark")
-                .discoveryFrequency(500l, TimeUnit.MILLISECONDS)
+                .discoveryFrequency(500L, TimeUnit.MILLISECONDS)
                 .build());
         JestHttpClient jestClient = (JestHttpClient) factory.getObject();
         assertNotNull(jestClient);
@@ -112,7 +112,7 @@ public class JestClientFactoryIntegrationTest extends ESIntegTestCase {
                 .Builder("http://localhost:" + cluster().httpAddresses()[0].getPort())
                 .multiThreaded(true)
                 .discoveryEnabled(true)
-                .discoveryFrequency(100l, TimeUnit.MILLISECONDS)
+                .discoveryFrequency(100L, TimeUnit.MILLISECONDS)
                 .maxConnectionIdleTime(1500L, TimeUnit.MILLISECONDS)
                 .maxTotalConnection(75)
                 .defaultMaxTotalConnectionPerRoute(75)
@@ -149,7 +149,7 @@ public class JestClientFactoryIntegrationTest extends ESIntegTestCase {
                 .Builder("http://localhost:" + cluster().httpAddresses()[0].getPort())
                 .multiThreaded(true)
                 .discoveryEnabled(true)
-                .discoveryFrequency(100l, TimeUnit.MILLISECONDS)
+                .discoveryFrequency(100L, TimeUnit.MILLISECONDS)
                 .maxTotalConnection(75)
                 .defaultMaxTotalConnectionPerRoute(75)
                 .build());

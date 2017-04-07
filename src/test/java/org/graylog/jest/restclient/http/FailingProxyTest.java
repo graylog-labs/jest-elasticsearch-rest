@@ -64,8 +64,7 @@ public class FailingProxyTest {
         assertThat(e, is(not(Matchers.nullValue())));
         final String message = e.toString();
         assertThat(message, not(containsString("Use JsonReader.setLenient(true)")));
-        assertThat(message, containsString("text/html"));
-        assertThat(message, containsString("should be json: HTTP/1.1 400 Bad Request"));
+        assertThat(message, containsString("HTTP/1.1 400 Bad Request"));
     }
 
     @Test
@@ -90,7 +89,7 @@ public class FailingProxyTest {
         assertThat(e, is(not(Matchers.nullValue())));
         final String message = e.toString();
         assertThat(message, not(containsString("Use JsonReader.setLenient(true)")));
-        assertThat(message, containsString("should be json: HTTP/1.1 400 Bad Request"));
+        assertThat(message, containsString("HTTP/1.1 400 Bad Request"));
     }
 
     private Exception runSynchronously() {

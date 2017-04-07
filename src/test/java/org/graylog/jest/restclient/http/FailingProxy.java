@@ -60,7 +60,7 @@ public class FailingProxy {
         final InetSocketAddress listenAddress = server.getListenAddress();
         final String host = listenAddress.getHostName();
         final int port = listenAddress.getPort();
-        return String.format("http://%s:%d/", host, port);
+        return String.format("http://%s:%d", host, port);
     }
 
     public void stop() {
